@@ -85,7 +85,6 @@ def getamz(keyword, maxpage=None):
     '''
     with open('html.txt', 'wr') as file:
         file.write(respons.content)
-        file.close()
     '''
 
 
