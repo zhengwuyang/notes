@@ -1,7 +1,18 @@
+'''
+4-12
+数据还未按条目整理，待更新
+'''
 from __future__ import print_function
+import logging
 import requests
+import sys
+from bs4 import BeautifulSoup
 from lxml import html
 
+#设置日志等级为debug,使requests模块命令行调试打印日志，
+logging.basicConfig(level=logging.DEBUG)
+
+#headers作为反爬虫的手段，必须添加，有些字段不需添加，以下为必须添加的
 headers = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
     "Accept-Language": "zh-CN,zh;q=0.8",
@@ -10,71 +21,77 @@ headers = {
     "Referer": "https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=milk"
 }
 
+title = []
+price = []
+nstar = []
 
-def getamz():
-    base_url = 'https://www.amazon.com/'
-    req = requests.Session()
+
+def getamz(keyword, maxpage=None):
+    '''
+    传入搜索的关键字和最大爬取页数，实现对商品信息的爬取
+    '''
+    print(keyword,maxpage)
+    base_url = 'https://www.amazon.com'
+    search_url = base_url + '/s'
+    #搜索页面
     params = {
         'url': 'search-alias=aps',
-        'field-keywords': 'milk'
+        'field-keywords': keyword
     }
+    req = requests.Session()
 
-    respons = req.get(base_url, headers=headers)
-    print(respons.apparent_encoding)
-    print(respons.encoding)
+    response = req.get(search_url, headers=headers, params=params)
+    tree = html.fromstring(response.content)
 
-    #text = respons.content.decode(respons.encoding)
-
-    tree = html.fromstring(respons.content)
-    print(tree.xpath('//title/text()'))
     pname = tree.xpath('//div//a/h2/text()')
-    print(pname)
+    title.extend(pname)
+
+    pstar = tree.xpath('//span/a/i[1]/span/text()')
+    for i in pstar:
+        i = float(i[:-15])
+        nstar.append(i)
+
+    pprice = tree.xpath('//div[4]/div[2]/a/span/@aria-label')
+    price.extend(pprice)
+
+    page = tree.xpath('//*[@id="pagn"]/span[6]/text()')
+    if maxpage:
+        if page:
+            page = int(page[0])
+            if maxpage < page:
+                page = maxpage
+            for i in range(page-1):
+                next_href = tree.xpath(
+                    '//*[@id="pagn"]//a[@title="Next Page"]/@href')
+
+                if next_href:
+                    next_url = base_url + next_href[0]
+                    response = req.get(next_url, headers=headers)
+                    tree = html.fromstring(response.content)
+
+                    pname = tree.xpath('//div//a/h2/text()')
+                    title.extend(pname)
+
+                    pstar = tree.xpath('//span/a/i[1]/span/text()')
+                    for i in pstar:
+                        i = float(i[:-15])
+                        nstar.append(i)
+                    
+                    pprice = tree.xpath('//div[4]/div[2]/a/span/@aria-label')
+                    price.extend(pprice)
+                else:
+                    print('None')
+    print(title,nstar,price)
     '''
-    with open('html1.txt', 'wr') as file:
+    with open('html.txt', 'wr') as file:
         file.write(respons.content)
+        file.close()
     '''
-
-
-def getjd():
-    base_url = 'https://search.jd.com/Search/'
-    req = requests.Session()
-    params = {
-        'keyword': 'milk',
-        'enc': 'utf-8',
-        'wq': 'milk',
-        'pvid': '53b137f96dae4580b0fbcc95eecef086'
-    }
-    url = 'https://search.jd.com/Search?keyword=milk&enc=utf-8&wq=milk&pvid=cc1f92668c8840d79c2e072421acc81a'
-
-    response = req.get(base_url, params=params)
-    print(response.encoding)
-    # print(response.content)
-    tree = html.fromstring(response.text)
-    text = tree.xpath('//title/text()')
-    for i in text:
-        i.encode('utf-8')
-        print(i)
-    #pname =  tree.xpath('/*[@id="J_goodsList"]//div//a[@target="_blank"]/em/text()')
-    pname = tree.xpath('//*[@id="J_goodsList"]/ul/li[3]/div/div[3]/a/text()')
-    for i in pname:
-        i.encode('utf-8')
-    print(pname)
-
-
-def test():
-    base_url = 'http://econpy.pythonanywhere.com/ex/001.html'
-    req = requests.Session()
-    respons = req.get(base_url)
-    print(respons.encoding)
-
-    text = respons.text.decode(respons.encoding).encode('utf-8')
-    tree = html.fromstring(text)
-
-    name = tree.xpath('//div[@title="buyer-name"]/text()')
-    # print(name)
 
 
 if __name__ == '__main__':
-    #    test()
-    getamz()
-    getjd()
+    getamz(sys.argv[1],int(sys.argv[2]))
+
+
+
+
