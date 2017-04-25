@@ -15,3 +15,8 @@
 相当于git fetch + git merge
 #git push
 `$ git push <远程主机名> <本地分支名>:<远程分支名>`
+
+# git status
+查看当前状态
+# git checkout <分支>切换分支
+git checkout -b <分支>新建分支
