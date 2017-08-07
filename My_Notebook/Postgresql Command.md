@@ -9,3 +9,11 @@
 `createuser username -P`
 # 创建数据库
 `createdb dbname -O username -E UTF8 -e`
+
+
+`sudo su - postgres` linux切换至postgres用户
+`psql -U <username> -d <dbname> -h <host> -p <port>`
+`create user <username>`
+`\password <username>;` 修改密码
+`create db <dbname> owner <username>`
+`GRANT ALL PRIVILEGES ON DATABASE <dbname> to <username>;`给权限

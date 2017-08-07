@@ -41,3 +41,10 @@ os.env.get()获取系统参数
   f = attrgetter('name', 'date'):: the call f(b) returns (b.name, b.date).
 
 #python-dotenv
+
+#alembic / migrate
+Alembic 是 Sqlalchemy 的作者实现的一个数据库版本化管理工具，它可以对基于Sqlalchemy的Model与数据库之间的历史关系进行版本化的维护。
+[参考blog](http://huangx.in/18/alembic-simple-tutorial)
+
+#argparse
+命令行选项与参数解析
